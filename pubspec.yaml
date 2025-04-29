@@ -1,6 +1,6 @@
 
-name: catch_the_ball_flutter_dyaksa
-description: A simple Flutter game project for Dyaksa
+name: flutter_game_project
+description: A simple Flutter game with lives, timer, and special effects.
 version: 1.0.0+1
 
 environment:
