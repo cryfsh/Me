@@ -1,129 +1,106 @@
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(MyGameApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyGameApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Game Sederhana Lengkap',
-      theme: ThemeData(primarySwatch: Colors.green),
-      home: GameScreen(),
+      title: 'Flutter Game',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: GamePage(),
     );
   }
 }
 
-class GameScreen extends StatefulWidget {
+class GamePage extends StatefulWidget {
   @override
-  _GameScreenState createState() => _GameScreenState();
+  _GamePageState createState() => _GamePageState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GamePageState extends State<GamePage> {
   int lives = 3;
-  int timeLeft = 60;
-  int score = 0;
-  int level = 1;
-  late Timer timer;
-  bool isGameOver = false;
+  int secondsLeft = 30;
+  Timer? _timer;
   bool showEffect = false;
 
   @override
   void initState() {
     super.initState();
     startTimer();
-    print("🎵 Musik latar dimulai (simulasi)");
   }
 
   void startTimer() {
-    timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        if (timeLeft > 0) {
-          timeLeft--;
-          score += 10;
-          if (score % 100 == 0) {
-            level++;
-          }
-          if (timeLeft % 5 == 0) {
-            showEffect = true;
-            Future.delayed(Duration(milliseconds: 500), () {
-              setState(() {
-                showEffect = false;
-              });
-            });
-          }
-        } else {
-          endGame();
-        }
-      });
-    });
-  }
-
-  void loseLife() {
-    setState(() {
-      lives--;
-      if (lives <= 0) {
-        endGame();
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (secondsLeft > 0) {
+        setState(() => secondsLeft--);
+      } else {
+        _timer?.cancel();
       }
     });
   }
 
-  void endGame() {
-    timer.cancel();
-    setState(() {
-      isGameOver = true;
+  void loseLife() {
+    if (lives > 0) {
+      setState(() => lives--);
+      if (lives == 0) _timer?.cancel();
+    }
+  }
+
+  void triggerEffect() {
+    setState(() => showEffect = true);
+    Future.delayed(Duration(seconds: 1), () {
+      setState(() => showEffect = false);
     });
   }
 
-  void resetGame() {
-    setState(() {
-      lives = 3;
-      timeLeft = 60;
-      score = 0;
-      level = 1;
-      isGameOver = false;
-      showEffect = false;
-    });
-    startTimer();
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Game Lengkap')),
-      body: Center(
-        child: isGameOver
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Game Over!', style: TextStyle(fontSize: 24)),
-                  Text('Score: \$score', style: TextStyle(fontSize: 20)),
-                  ElevatedButton(onPressed: resetGame, child: Text('Restart'))
-                ],
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Lives: \$lives', style: TextStyle(fontSize: 18)),
-                  Text('Time Left: \$timeLeft', style: TextStyle(fontSize: 18)),
-                  Text('Score: \$score', style: TextStyle(fontSize: 18)),
-                  Text('Level: \$level', style: TextStyle(fontSize: 18)),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                      onPressed: loseLife, child: Text('Take Damage')),
-                  if (showEffect)
-                    Container(
-                      margin: EdgeInsets.only(top: 20),
-                      padding: EdgeInsets.all(10),
-                      color: Colors.redAccent,
-                      child: Text('🔥 Efek Spesial!',
-                          style:
-                              TextStyle(fontSize: 16, color: Colors.white)),
-                    )
-                ],
+      appBar: AppBar(title: Text("Game Time!")),
+      body: Stack(
+        children: [
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Lives: $lives", style: TextStyle(fontSize: 24)),
+                SizedBox(height: 20),
+                Text("Time left: $secondsLeft", style: TextStyle(fontSize: 24)),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: loseLife,
+                  child: Text("Lose Life"),
+                ),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: triggerEffect,
+                  child: Text("Special Effect"),
+                ),
+              ],
+            ),
+          ),
+          if (showEffect)
+            Container(
+              color: Colors.blue.withOpacity(0.5),
+              child: Center(
+                child: Text(
+                  "💥 EFFECT! 💥",
+                  style: TextStyle(fontSize: 40, color: Colors.white),
+                ),
               ),
+            ),
+        ],
       ),
     );
   }
